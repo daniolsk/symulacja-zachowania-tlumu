@@ -17,6 +17,7 @@ class FanAgent(Agent):
         self.is_scanning = False
         self.scanning_timer = 0
         self.has_scanned = False
+        self.entry_time = None # Krok, w którym agent usiadł
 
     def find_path(self):
         queue = collections.deque([(self.pos, [])])
@@ -46,8 +47,10 @@ class FanAgent(Agent):
 
     def step(self):
         if self.pos == self.seat_pos:
-            self.is_seated = True
-            self.is_scanning = False
+            if not self.is_seated:
+                self.is_seated = True
+                self.is_scanning = False
+                self.entry_time = self.model.schedule.steps
             return
 
         # Obsługa skanowania biletów na bramce
