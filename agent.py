@@ -14,6 +14,9 @@ class FanAgent(Agent):
         super().__init__(unique_id, model)
         self.seat_pos = seat_pos
         self.is_seated = False
+        self.is_scanning = False
+        self.scanning_timer = 0
+        self.has_scanned = False
 
     def find_path(self):
         queue = collections.deque([(self.pos, [])])
@@ -27,15 +30,15 @@ class FanAgent(Agent):
 
             # Włączamy ruch po przekątnych (moore=True)
             neighbors = list(self.model.grid.get_neighborhood(current_pos, moore=True, include_center=False))
-            
+
             # Przełamujemy determinizm - tłum zacznie zachowywać się naturalnie
             random.shuffle(neighbors)
-            
+
             for next_pos in neighbors:
                 if next_pos not in visited:
                     cell_contents = self.model.grid.get_cell_list_contents([next_pos])
                     is_wall = any(isinstance(obj, WallAgent) for obj in cell_contents)
-                    
+
                     if not is_wall:
                         visited.add(next_pos)
                         queue.append((next_pos, path + [next_pos]))
@@ -44,18 +47,33 @@ class FanAgent(Agent):
     def step(self):
         if self.pos == self.seat_pos:
             self.is_seated = True
+            self.is_scanning = False
             return
+
+        # Obsługa skanowania biletów na bramce
+        if self.pos in self.model.gate_positions and not self.has_scanned:
+            if not self.is_scanning:
+                self.is_scanning = True
+                self.scanning_timer = self.model.gate_service_time
+
+            if self.is_scanning:
+                self.scanning_timer -= 1
+                if self.scanning_timer <= 0:
+                    self.is_scanning = False
+                    self.has_scanned = True
+                else:
+                    return # Czekamy na bramce
 
         path = self.find_path()
 
         if path:
             next_step = path[0]
-            
+
             cell_contents = self.model.grid.get_cell_list_contents([next_step])
-            
+
             # UWAGA: Omijamy tylko tych kibiców, którzy są w ruchu. 
             # Przez siedzących (is_seated=True) można się "przecisnąć".
             is_occupied = any(isinstance(obj, FanAgent) and not obj.is_seated for obj in cell_contents)
-            
+
             if not is_occupied:
                 self.model.grid.move_agent(self, next_step)
