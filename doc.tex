@@ -1,0 +1,194 @@
+%%%%%% -*- Coding: utf-8-unix; Mode: latex
+
+%\documentclass[polish]{projectreport}
+\documentclass[polish]{projectreport}
+
+\usepackage[utf8]{inputenc}
+\usepackage{url}
+\usepackage{subfigure}
+\usepackage{tabularx}
+\usepackage{ragged2e}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{grffile}
+
+\usepackage[bookmarks=false]{hyperref}
+\hypersetup{colorlinks,
+  linkcolor=blue,
+  citecolor=blue,
+  urlcolor=blue}
+
+\usepackage{indentfirst}
+\usepackage{caption}
+\usepackage{listings}
+\usepackage[ruled,linesnumbered,lined]{algorithm2e}
+\usepackage[svgnames]{xcolor}
+\usepackage{inconsolata}
+\usepackage{fancyhdr}
+
+\usepackage{csquotes}
+\DeclareQuoteStyle[quotes]{polish}
+  {\quotedblbase}
+  {\textquotedblright}
+  [0.05em]
+  {\quotesinglbase}
+  {\fixligatures\textquoteright}
+\DeclareQuoteAlias[quotes]{polish}{polish}
+
+\usepackage[
+style=numeric,
+sorting=nyt,
+isbn=false,
+doi=true,
+url=true,
+backref=false,
+backrefstyle=none,
+maxnames=10,
+giveninits=true,
+abbreviate=true,
+defernumbers=false,
+backend=biber]{biblatex}
+\addbibresource{bibliography.bib}
+
+\lstset{
+    %language=Python, %% PHP, C, Java, etc.
+    basicstyle=\ttfamily\footnotesize,
+    backgroundcolor=\color{gray!5},
+    commentstyle=\it\color{Green},
+    keywordstyle=\color{Red},
+    stringstyle=\color{Blue},
+    numberstyle=\tiny\color{Black},    
+    % morekeywords={TestKeyword},
+    % mathescape=true,
+    escapeinside=`',
+    frame=single, %shadowbox, 
+    tabsize=2,
+    rulecolor=\color{black!30},
+    title=\lstname,
+    breaklines=true,
+    breakatwhitespace=true,
+    framextopmargin=2pt,
+    framexbottommargin=2pt,
+    extendedchars=false,
+    captionpos=b,
+    abovecaptionskip=5pt,
+    keepspaces=true,            
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+
+\SetAlgorithmName{\LangAlgorithm}{\LangAlgorithmRef}{\LangListOfAlgorithms}
+
+\renewcommand{\lstlistingname}{\LangListing}
+\renewcommand\lstlistlistingname{\LangListOfListings}
+
+\newcolumntype{Y}{>{\small\centering\arraybackslash}X}
+%\newcolumntype{b}{>{\hsize=1.6\hsize}Y}
+%\newcolumntype{m}{>{\hsize=.6\hsize}Y}
+%\newcolumntype{s}{>{\hsize=.4\hsize}Y}
+
+\captionsetup[figure]{skip=5pt,position=bottom}
+\captionsetup[table]{skip=5pt,position=top}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\author{Przemysław Zieliński$^1$  \and Daniel Skowron$^2$ }
+
+\title{Symulacja zachowania tłumu}
+
+\date{
+	{\small $^1$Wyższa Szkoła Zarządzania i Bankowości w Krakowie \\ \texttt{przielin@student.wszib.edu.pl}\\[1ex]%
+	$^2$Wyższa Szkoła Zarządzania i Bankowości w Krakowie \\ \texttt{daskowra@student.wszib.edu.pl}\\[2ex]%
+        \the\year}
+      }
+      
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE,RO]{\thepage}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+\maketitle
+
+\thispagestyle{empty}
+
+\begin{abstract}
+\noindent W pracy przedstawiono zagadnienie symulacji zachowania tłumu oraz podstawowe metody modelowania ruchu dużych grup ludzi. Omówiono znaczenie symulacji w kontekście bezpieczeństwa publicznego, ewakuacji oraz zarządzania kryzysowego. Przedstawiono podejście makroskopowe i mikroskopowe, ze szczególnym uwzględnieniem modeli agentowych. Uwzględniono również wpływ czynników psychologicznych oraz zastosowanie Metody Elementów Dyskretnych i systemów monitoringu.
+
+\noindent\textbf{Keywords:} Symulacja tłumu, modelowanie ruchu pieszych, modele agentowe, ewakuacja, bezpieczeństwo publiczne, zarządzanie kryzysowe, podejście mikroskopowe i makroskopowe, czynniki psychologiczne.
+\end{abstract}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+\section{\SectionTitleIntroduction}
+\label{sec:introduction}
+
+Symulacja zachowania tłumu to obszar badań, który łączy informatykę z innymi dziedzinami, takimi jak matematyka, fizyka czy socjologia. Współczesne miasta, centra handlowe, stadiony czy stacje metra są miejscami intensywnego przemieszczania się ludzi. W sytuacjach zagrożenia, paniki lub dużego zagęszczenia może dojść do niekontrolowanych zjawisk prowadzących do obrażeń lub ofiar śmiertelnych.
+
+Modelowanie tłumu pozwala analizować bezpieczeństwo ludzi, projektować infrastrukturę oraz planować ewakuację. Zgodnie z \cite{kapalka2011symulacja}, symulacje tłumu znajdują zastosowanie zarówno w analizie sytuacji kryzysowych, jak i w badaniu ruchu pieszych.
+
+W literaturze wyróżnia się dwa główne podejścia do modelowania tłumu: makroskopowe i mikroskopowe. Podejście makroskopowe traktuje tłum jako jednorodny przepływ i opisuje go za pomocą parametrów takich jak gęstość czy średnia prędkość. Podejście mikroskopowe analizuje każdą osobę indywidualnie jako osobny obiekt posiadający własne cele i sposób poruszania się \cite{piwinski2010modelowanie}.
+
+Podejścia mikroskopowe są szczególnie istotne w symulacjach realistycznych, ponieważ pozwalają odwzorować interakcje pomiędzy jednostkami oraz ich reakcje na zmieniające się warunki otoczenia. Jak wskazuje Tąbedzki, modele te uwzględniają m.in. unikanie kolizji, wybór trajektorii ruchu oraz lokalne decyzje podejmowane przez jednostki w czasie rzeczywistym \cite{tabedzki2013mikroskopowe}.
+
+W modelach mikroskopowych często stosuje się systemy agentowe, gdzie każda jednostka jest autonomicznym agentem podejmującym decyzje na podstawie otoczenia. Kapałka proponuje model hybrydowy, łączący reprezentację grafową na poziomie decyzyjnym oraz siatkę komórkową na poziomie ruchu jednostek \cite{kapalka2011symulacja}.
+
+Istotne znaczenie mają także aspekty psychologiczne. Piwiński podkreśla, że człowiek w tłumie zachowuje się inaczej niż indywidualnie --- wzrasta anonimowość, maleje odpowiedzialność, a emocje takie jak strach czy agresja silniej wpływają na decyzje \cite{piwinski2010modelowanie}. Dlatego nowoczesne modele uwzględniają nie tylko fizyczny ruch, ale również relacje społeczne i poziom stresu.
+
+Współczesne badania wykorzystują również Metodę Elementów Dyskretnych (DEM), pozwalającą analizować kolizje, omijanie przeszkód i trajektorie ruchu. Coraz częściej stosuje się także systemy analizy obrazu i monitoring wizyjny do oceny gęstości tłumu oraz wykrywania niebezpiecznych zachowań \cite{piwinski2010modelowanie}.
+
+Obecny kierunek badań zmierza w stronę modeli hybrydowych, łączących podejście fizyczne, psychologiczne i społeczne. Celem niniejszego sprawozdania jest analiza metod symulacji zachowania tłumu oraz przedstawienie modeli wykorzystywanych w badaniu ewakuacji i bezpieczeństwa obiektów użyteczności publicznej.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\section{Sformułowanie problemu i proponowane rozwiązanie}
+\label{sec:problem_formulation}
+
+\subsection{Opis problemu}
+Problem badawczy będący przedmiotem projektu dotyczy modelowania logistyki oraz dynamiki napływu tłumu (inflow) na obiekt masowy, jakim jest stadion. W przeciwieństwie do standardowych modeli ewakuacyjnych, głównym obszarem analizy jest tutaj proces wejścia widzów, poddany rygorom odprawy biletowej oraz przepustowości infrastruktury.
+
+Kluczowym celem jest analiza powstawania tzw. \textit{wąskich gardeł} (bottlenecks) przy wejściach (bramkach) oraz w korytarzach między rzędami siedzeń. Analizie poddane zostaną parametry takie jak czas odprawy biletowej, liczba i szerokość dostępnych bramek wejściowych, a także zachowania samych uczestników (świadomy wybór wejścia dedykowanego w stosunku do poruszania się losowego). Wynikiem symulacji jest optymalizacja zarządzania przepustowością i skrócenie średniego czasu zajmowania miejsc przez przypisanych im kibiców.
+
+\subsection{Model symulacyjny}
+Opracowany model funkcjonuje na dyskretnej, dwuwymiarowej siatce (ang. \textit{grid}) o wymiarach 50x50 komórek, korzystając z paradygmatu modelowania wieloagentowego (ABM -- \textit{Agent-Based Modeling}). W przestrzeni modelu współistnieją trzy rodzaje agentów:
+\begin{itemize}
+    \item \textbf{WallAgent} -- agenci statyczni reprezentujący infrastrukturę fizyczną (ściany, granice trybun), z którymi niemożliwa jest jakakolwiek kolizja czy ich przenikanie przez poruszające się obiekty.
+    \item \textbf{SeatAgent} -- statyczni agenci symulujący miejsca dla widzów na trybunach. Przechowują swoje unikalne identyfikatory (rząd i miejsce), stanowiąc punkt docelowy ruchu poszczególnych widzów.
+    \item \textbf{FanAgent} -- agenci poruszający się, reprezentujący kibiców. Pojawiają się na obrzeżach symulacji, przechodzą kontrolę przy bramkach, a następnie starają się znaleźć najbardziej optymalną drogę do swojego indywidualnego krzesełka.
+\end{itemize}
+
+Model pozwala na nałożenie się na siebie w jednej komórce maksymalnie dwóch poruszających się osób, co symuluje zjawisko fizycznego przepuszczania i wymijania się ludzi obracających się bokiem w ciasnym korytarzu.
+
+Podczas symulacji mierzona jest na bieżąco m.in. \textit{Przepustowość} (ilość przepuszczonych kibiców per krok czasowy), \textit{Długość kolejki} oczekującej do skanowania biletów oraz \textit{Średni czas wejścia} informujący po ilu krokach od utworzenia dany kibic zajął swoje miejsce.
+
+\subsection{Algorytmy i biblioteki}
+
+System symulacyjny został zaimplementowany w języku Python przy wykorzystaniu specjalistycznego frameworka \textit{Mesa} przeznaczonego do budowy modeli agentowych. Do wizualizacji działania tłumu wykorzystano zintegrowany serwer działający na bibliotece \textit{Tornado} (\texttt{mesa\_viz\_tornado}), pozwalający na obserwację ruchu węzłów i rysowanie wykresów analitycznych w czasie rzeczywistym.
+
+Do modelowania przestrzennego nawigowania (ang. \textit{pathfinding}) zastosowano zmodyfikowany algorytm $A^*$ (A-Star) oparty o kolejkę priorytetową (\texttt{heapq}). Trasa każdego kibica wyznaczana jest heurystycznie na podstawie otoczenia Moore'a. Aby zachowanie tłumu było realistyczne, każdy agent weryfikuje gęstość obszaru w zasięgu wzroku przeliczając nową złożoność kroków. 
+Funkcja bazowego kosztu wejścia na pole $(x,y)$ obliczana jest zgodnie z poniższym wzorem:
+
+\begin{equation}
+    C(x,y) = 1 + P_{seat} + (N_{crowd} \cdot \beta)
+\end{equation}
+
+Gdzie $C$ to całkowity koszt wejścia dla agenta, 1 to bazowy koszt przejścia pustego chodnika, $P_{seat}$ to dodatkowa stała kara logistyczna reprezentująca próbę przedarcia się podłużnego przez rząd cudzych krzeseł ($P_{seat} = 15$), a $N_{crowd}$ to liczba innych agentów zidentyfikowana w danej lokalizacji wpływająca na spowolnienie ruchu o wskaźnik $\beta$ (w naszym modelu ułatwień $\beta = 5$).
+
+W sytuacjach granicznych i przy zablokowaniach (tzw. \textit{deadlockach}), agent porzuca oryginalną ścieżkę szukając obejścia. 
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+
+
+\printbibliography
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\end{document}
