@@ -164,7 +164,26 @@ Opracowany model funkcjonuje na dyskretnej, dwuwymiarowej siatce (ang. \textit{g
     \item \textbf{FanAgent} -- agenci poruszający się, reprezentujący kibiców. Pojawiają się na obrzeżach symulacji, przechodzą kontrolę przy bramkach, a następnie starają się znaleźć najbardziej optymalną drogę do swojego indywidualnego krzesełka.
 \end{itemize}
 
-Model pozwala na nałożenie się na siebie w jednej komórce maksymalnie dwóch poruszających się osób, co symuluje zjawisko fizycznego przepuszczania i wymijania się ludzi obracających się bokiem w ciasnym korytarzu.
+Standardowo model wymusza obecność maksymalnie jednego agenta na komórce, co sprzyja naturalnemu formowaniu się kolejek. W sytuacjach krytycznych zatorów (tzw. \textit{deadlocków}), algorytm dopuszcza jednak chwilowe zagęszczenie do maksymalnie czterech poruszających się osób na jednym polu, co symuluje zjawisko desperackiego przepuszczania i wymijania się ludzi w skrajnym tłoku. Mechanizm ten jest uruchamiany dopiero po kilku cyklach symulacji (iteracjach), podczas których agent pozostaje zablokowany, co decyzyjnie obrazuje Listing \ref{lst:deadlock}.
+
+\begin{lstlisting}[language=Python, caption={Mechanizm omijania i przeciskania się w przypadku przeciążenia korytarza}, label={lst:deadlock}]
+if len(moving_agents) == 0:
+    self.model.grid.move_agent(self, next_step)
+    self.path.pop(0)
+    self.blocked_counter = 0
+else:
+    self.blocked_counter += 1
+    if self.blocked_counter == 3:
+        self.path = self.find_path(current_target)
+    elif self.blocked_counter > 6:
+        if len(moving_agents) < 4:
+            self.model.grid.move_agent(self, next_step)
+            self.path.pop(0)
+            self.blocked_counter = 0
+        else:
+            self.path = self.find_path(current_target)
+            self.blocked_counter = 3
+\end{lstlisting}
 
 Podczas symulacji mierzona jest na bieżąco m.in. \textit{Przepustowość} (ilość przepuszczonych kibiców per krok czasowy), \textit{Długość kolejki} oczekującej do skanowania biletów oraz \textit{Średni czas wejścia} informujący po ilu krokach od utworzenia dany kibic zajął swoje miejsce.
 
@@ -176,10 +195,10 @@ Do modelowania przestrzennego nawigowania (ang. \textit{pathfinding}) zastosowan
 Funkcja bazowego kosztu wejścia na pole $(x,y)$ obliczana jest zgodnie z poniższym wzorem:
 
 \begin{equation}
-    C(x,y) = 1 + P_{seat} + (N_{crowd} \cdot \beta)
+    C(x,y) = C_{base} + (N_{crowd} \cdot \beta)
 \end{equation}
 
-Gdzie $C$ to całkowity koszt wejścia dla agenta, 1 to bazowy koszt przejścia pustego chodnika, $P_{seat}$ to dodatkowa stała kara logistyczna reprezentująca próbę przedarcia się podłużnego przez rząd cudzych krzeseł ($P_{seat} = 15$), a $N_{crowd}$ to liczba innych agentów zidentyfikowana w danej lokalizacji wpływająca na spowolnienie ruchu o wskaźnik $\beta$ (w naszym modelu ułatwień $\beta = 5$).
+Gdzie $C$ to całkowity koszt wejścia dla agenta, $C_{base}$ to koszt wejścia uzależniony od infrastruktury ($C_{base} = 1$ dla pustego przejścia oraz $C_{base} = 15$ dla rzędu cudzych krzeseł), a $N_{crowd}$ to liczba innych agentów zidentyfikowana w danej lokalizacji wpływająca na spowolnienie ruchu o wskaźnik $\beta$ (w naszym modelu $\beta = 5$).
 
 W sytuacjach granicznych i przy zablokowaniach (tzw. \textit{deadlockach}), agent porzuca oryginalną ścieżkę szukając obejścia. 
 
