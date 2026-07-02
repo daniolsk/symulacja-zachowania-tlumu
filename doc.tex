@@ -10,6 +10,7 @@
 \usepackage{ragged2e}
 \usepackage{booktabs}
 \usepackage{multirow}
+\usepackage{graphicx}
 \usepackage{grffile}
 
 \usepackage[bookmarks=false]{hyperref}
@@ -119,9 +120,9 @@ backend=biber]{biblatex}
 \thispagestyle{empty}
 
 \begin{abstract}
-\noindent W pracy przedstawiono zagadnienie symulacji zachowania tłumu oraz podstawowe metody modelowania ruchu dużych grup ludzi. Omówiono znaczenie symulacji w kontekście bezpieczeństwa publicznego, ewakuacji oraz zarządzania kryzysowego. Przedstawiono podejście makroskopowe i mikroskopowe, ze szczególnym uwzględnieniem modeli agentowych. Uwzględniono również wpływ czynników psychologicznych oraz zastosowanie Metody Elementów Dyskretnych i systemów monitoringu.
+\noindent W pracy przedstawiono zagadnienie symulacji zachowania tłumu oraz zaprojektowano i zaimplementowano mikroskopowy, wieloagentowy model logistyki napływu widzów na stadion. W odróżnieniu od typowych modeli ewakuacyjnych, przedmiotem analizy jest proces \textit{wejścia} kibiców na obiekt, ograniczony przepustowością bramek oraz czasem kontroli biletów. Model zbudowano w języku Python z użyciem frameworka Mesa; ruch agentów wyznaczany jest algorytmem przeszukiwania z heurystyką kosztu uwzględniającą zagęszczenie tłumu. Przeprowadzono cztery serie eksperymentów badających wpływ liczby bramek, ich szerokości, czasu kontroli biletów oraz strategii wyboru bramki na czas zapełnienia trybun i średni czas wejścia. Wyniki pokazują m.in. wyraźny efekt nasycenia --- zwiększanie liczby bramek powyżej progu przestaje skracać czas zapełnienia, gdyż wąskie gardło przenosi się z bramek do korytarzy między rzędami --- oraz nieoczywisty rezultat, w którym kierowanie kibiców do bramki najbliższej ich miejscu wypada gorzej niż wybór bramki najbliższej punktowi wejścia, ze względu na naturalne równoważenie obciążenia bramek w tym drugim przypadku.
 
-\noindent\textbf{Keywords:} Symulacja tłumu, modelowanie ruchu pieszych, modele agentowe, ewakuacja, bezpieczeństwo publiczne, zarządzanie kryzysowe, podejście mikroskopowe i makroskopowe, czynniki psychologiczne.
+\noindent\textbf{Keywords:} symulacja tłumu, modele agentowe (ABM), modelowanie ruchu pieszych, logistyka wejścia na stadion, wąskie gardła, przepustowość, wyznaczanie ścieżki, Mesa, bezpieczeństwo imprez masowych, podejście mikroskopowe.
 \end{abstract}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
@@ -189,7 +190,7 @@ Podczas symulacji mierzona jest na bieżąco m.in. \textit{Przepustowość} (ilo
 
 \subsection{Algorytmy i biblioteki}
 
-System symulacyjny został zaimplementowany w języku Python przy wykorzystaniu specjalistycznego frameworka \textit{Mesa} przeznaczonego do budowy modeli agentowych. Do wizualizacji działania tłumu wykorzystano zintegrowany serwer działający na bibliotece \textit{Tornado} (\texttt{mesa\_viz\_tornado}), pozwalający na obserwację ruchu węzłów i rysowanie wykresów analitycznych w czasie rzeczywistym.
+System symulacyjny został zaimplementowany w języku Python przy wykorzystaniu specjalistycznego frameworka \textit{Mesa} przeznaczonego do budowy modeli agentowych\footnote{Pełny kod źródłowy modelu oraz skrypty eksperymentalne dostępne są w repozytorium: \url{https://github.com/daniolsk/symulacja-zachowania-tlumu}}. Do wizualizacji działania tłumu wykorzystano zintegrowany serwer działający na bibliotece \textit{Tornado} (\texttt{mesa\_viz\_tornado}), pozwalający na obserwację ruchu węzłów i rysowanie wykresów analitycznych w czasie rzeczywistym.
 
 Do modelowania przestrzennego nawigowania (ang. \textit{pathfinding}) zastosowano zmodyfikowany algorytm $A^*$ (A-Star) oparty o kolejkę priorytetową (\texttt{heapq}). Trasa każdego kibica wyznaczana jest heurystycznie na podstawie otoczenia Moore'a. Aby zachowanie tłumu było realistyczne, każdy agent weryfikuje gęstość obszaru w zasięgu wzroku przeliczając nową złożoność kroków. 
 Funkcja bazowego kosztu wejścia na pole $(x,y)$ obliczana jest zgodnie z poniższym wzorem:
@@ -200,12 +201,189 @@ Funkcja bazowego kosztu wejścia na pole $(x,y)$ obliczana jest zgodnie z poniż
 
 Gdzie $C$ to całkowity koszt wejścia dla agenta, $C_{base}$ to koszt wejścia uzależniony od infrastruktury ($C_{base} = 1$ dla pustego przejścia oraz $C_{base} = 15$ dla rzędu cudzych krzeseł), a $N_{crowd}$ to liczba innych agentów zidentyfikowana w danej lokalizacji wpływająca na spowolnienie ruchu o wskaźnik $\beta$ (w naszym modelu $\beta = 5$).
 
-W sytuacjach granicznych i przy zablokowaniach (tzw. \textit{deadlockach}), agent porzuca oryginalną ścieżkę szukając obejścia. 
+W sytuacjach granicznych i przy zablokowaniach (tzw. \textit{deadlockach}), agent porzuca oryginalną ścieżkę szukając obejścia.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Wyniki badań eksperymentalnych}
+\label{sec:experiments}
 
+\subsection{Metodyka badań}
+Eksperymenty przeprowadzono w trybie wsadowym (bez warstwy wizualizacji), uruchamiając model wielokrotnie dla różnych zestawów parametrów. Dla każdej konfiguracji wykonano niezależne replikacje (z uwagi na losowość rozmieszczenia punktów startowych, przydziału miejsc oraz losowej kolejności przeglądania sąsiedztwa w algorytmie ruchu), a prezentowane wartości stanowią uśrednienie po replikacjach. Wąsy na wykresach oznaczają odchylenie standardowe.
 
+Jako główne miary efektywności przyjęto:
+\begin{itemize}
+    \item \textbf{Czas zapełnienia} --- liczbę kroków symulacji potrzebną do zajęcia miejsc przez \emph{wszystkich} kibiców (miara przepustowości całego procesu);
+    \item \textbf{Średni czas wejścia} --- średnią liczbę kroków, po której pojedynczy kibic zajmuje swoje miejsce (miara komfortu/sprawności z perspektywy widza);
+    \item \textbf{Średnią długość kolejki} --- średnią w czasie liczbę kibiców oczekujących na odprawę (miara natężenia wąskiego gardła).
+\end{itemize}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+O ile nie zaznaczono inaczej, konfiguracją bazową było: 200 kibiców, 4 bramki, szerokość bramki 2 komórki, czas kontroli biletu 5 kroków oraz świadomy wybór bramki. W kolejnych eksperymentach zmieniano jeden wybrany parametr, pozostawiając resztę bez zmian.
+
+Poglądowy przebieg symulacji przedstawia Rysunek~\ref{fig:sim_overview}: widoczni są kibice oczekujący w kolejce (kolor czerwony), przechodzący kontrolę biletową przy bramce (kolor żółty) oraz zajmujący już swoje miejsca (kolor zielony). Rysunek~\ref{fig:bottleneck} ilustruje natomiast zjawisko wąskiego gardła powstające przy ograniczeniu liczby bramek do jednej.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.7\textwidth]{experiments/plots/rys_symulacja_ogolna.png}
+    \caption{Ogólny widok symulacji w trakcie napływu widzów. Czerwone znaczniki --- kibice w kolejce, żółte --- w trakcie kontroli biletów, zielone --- zajmujące miejsca.}
+    \label{fig:sim_overview}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.7\textwidth]{experiments/plots/rys_waskie_gardlo.png}
+    \caption{Zjawisko wąskiego gardła (\textit{bottleneck}) --- pojedyncza bramka powoduje formowanie się długiej kolejki i znaczne wydłużenie czasu wejścia.}
+    \label{fig:bottleneck}
+\end{figure}
+
+Warstwa wizualizacji na bieżąco prezentuje również wykresy trzech mierzonych metryk (Rysunek~\ref{fig:live_charts}), co pozwala śledzić dynamikę procesu napływu w czasie rzeczywistym.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.7\textwidth]{experiments/plots/rys_wykresy_live.png}
+    \caption{Panel metryk w czasie rzeczywistym: przepustowość, średni czas wejścia oraz długość kolejki w kolejnych krokach symulacji.}
+    \label{fig:live_charts}
+\end{figure}
+
+\subsection{Eksperyment 1: wpływ liczby bramek}
+W pierwszym eksperymencie badano wpływ liczby bramek wejściowych na przepustowość obiektu przy stałym obciążeniu 200 kibiców. Ze względu na to, że przy małej liczbie bramek pojawiały się sporadyczne, długotrwałe zatory, każdą konfigurację powtórzono 8~razy, a jako główną miarę przyjęto \emph{medianę} czasu zapełnienia (odporną na pojedyncze biegi niezakończone w limicie kroków). Wyniki zestawiono w Tabeli~\ref{tab:gates} oraz na Rysunku~\ref{fig:exp1}.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Wpływ liczby bramek (200 kibiców). Kolumna „Ukończone'' podaje, w ilu z~8 biegów wszyscy kibice zajęli miejsca przed osiągnięciem limitu kroków.}
+    \label{tab:gates}
+    \begin{tabular}{@{}rrrr@{}}
+        \toprule
+        Liczba bramek & Mediana czasu zapełnienia [kroki] & Średni czas wejścia [kroki] & Ukończone \\
+        \midrule
+        1 & 292 & 156 & 8/8 \\
+        2 & 192 & 104 & 7/8 \\
+        3 & 183 & 99  & 7/8 \\
+        4 & 176 & 94  & 8/8 \\
+        6 & 172 & 93  & 8/8 \\
+        8 & 169 & 92  & 8/8 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.65\textwidth]{experiments/plots/exp1_gates.png}
+    \caption{Zależność mediany czasu zapełnienia oraz średniego czasu wejścia od liczby bramek.}
+    \label{fig:exp1}
+\end{figure}
+
+Zaobserwowano wyraźny \emph{efekt nasycenia}. Przejście z jednej do dwóch bramek skraca medianę czasu zapełnienia o ok. 34\% (z 292 do 192 kroków), a średni czas wejścia niemal o połowę (ze 156 do 104 kroków). Dalsze zwiększanie liczby bramek przynosi już tylko marginalne korzyści --- powyżej 4 bramek krzywa spłaszcza się na poziomie ok. 170 kroków. Oznacza to, że po odblokowaniu wejść czynnikiem ograniczającym przestają być same bramki, a staje się nim wewnętrzna infrastruktura (korytarze i dojścia do rzędów siedzeń). Dodatkowo, przy 2--3 bramkach jeden na osiem biegów nie rozładował się w pełni w zadanym limicie kroków --- świadczy to o tym, że przy umiarkowanej liczbie wejść model bywa podatny na przejściowe zakleszczenia w wąskich korytarzach (por. ograniczenia modelu w Rozdziale~\ref{sec:conclusions}).
+
+\subsection{Eksperyment 2: wpływ czasu kontroli biletów}
+W eksperymencie badano wpływ czasu odprawy biletowej (liczby kroków potrzebnych na przeskanowanie jednego biletu) na przepustowość procesu. Ze względu na to, że długi czas kontroli drastycznie wydłuża biegi symulacji, obciążenie ustalono na poziomie 120 kibiców. Wyniki zebrano w Tabeli~\ref{tab:service} oraz na Rysunku~\ref{fig:exp2}.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Wpływ czasu kontroli biletów (120 kibiców, 4 bramki).}
+    \label{tab:service}
+    \begin{tabular}{@{}rrr@{}}
+        \toprule
+        Czas kontroli [kroki] & Czas zapełnienia [kroki] & Średni czas wejścia [kroki] \\
+        \midrule
+        1  & 136 & 77 \\
+        3  & 144 & 74 \\
+        5  & 150 & 80 \\
+        8  & 154 & 86 \\
+        12 & 164 & 93 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.65\textwidth]{experiments/plots/exp2_service.png}
+    \caption{Zależność czasu zapełnienia i średniego czasu wejścia od czasu kontroli biletu.}
+    \label{fig:exp2}
+\end{figure}
+
+Zaobserwowano niemal liniowy wzrost zarówno czasu zapełnienia trybun (ze 136 do 164 kroków, tj. o ok. 21\%), jak i średniego czasu wejścia pojedynczego kibica (z ok. 77 do 93 kroków) wraz z wydłużaniem procedury kontroli. Wynik ten potwierdza intuicję, że odprawa biletowa jest jednym z kluczowych, sterowalnych elementów wąskiego gardła --- każde skrócenie czasu obsługi (np. przez automatyzację skanowania) bezpośrednio przekłada się na szybszy i płynniejszy napływ widzów.
+
+\subsection{Eksperyment 3: wpływ szerokości bramek}
+Kolejny eksperyment dotyczył szerokości bramek, tj. liczby komórek, przez które równolegle może odbywać się odprawa w obrębie jednej bramki. Wyniki przedstawia Tabela~\ref{tab:width} oraz Rysunek~\ref{fig:exp3}.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Wpływ szerokości bramek (200 kibiców, 4 bramki).}
+    \label{tab:width}
+    \begin{tabular}{@{}rrr@{}}
+        \toprule
+        Szerokość bramki & Czas zapełnienia [kroki] & Średni czas wejścia [kroki] \\
+        \midrule
+        1 & 182 & 102 \\
+        2 & 175 & 99 \\
+        3 & 167 & 92 \\
+        4 & 167 & 91 \\
+        5 & 172 & 91 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.65\textwidth]{experiments/plots/exp3_width.png}
+    \caption{Zależność czasu zapełnienia i średniego czasu wejścia od szerokości bramek.}
+    \label{fig:exp3}
+\end{figure}
+
+Poszerzanie bramek przynosi umiarkowaną poprawę: przejście od szerokości 1 do 3 komórek skraca czas zapełnienia o ok. 8\% (ze 182 do 167 kroków) i średni czas wejścia o ok. 10\%. Powyżej szerokości 3 komórek efekt się nasyca, a dla szerokości 5 obserwujemy nawet nieznaczne pogorszenie. Wskazuje to, że sama zdolność przepustowa bramek przestaje być czynnikiem ograniczającym --- po jej odblokowaniu przepustowość całości limitowana jest już przez korytarze i dojścia do rzędów siedzeń.
+
+\subsection{Eksperyment 4: świadomy vs losowy wybór bramki}
+Ostatni eksperyment porównywał dwie strategie wyboru bramki przez kibica w funkcji obciążenia obiektu (od 100 do 300 osób):
+\begin{itemize}
+    \item \textbf{Świadome wejście} --- kibic kieruje się do bramki położonej najbliżej swojego \emph{miejsca} na trybunie;
+    \item \textbf{Losowe (naturalne) wejście} --- kibic kieruje się do bramki położonej najbliżej swojego \emph{punktu przybycia}.
+\end{itemize}
+
+\begin{table}[htbp]
+    \centering
+    \caption{Porównanie strategii wyboru bramki. Wartości: średni czas wejścia / czas zapełnienia [kroki].}
+    \label{tab:smart}
+    \begin{tabular}{@{}rcc@{}}
+        \toprule
+        Liczba kibiców & Świadome wejście & Losowe wejście \\
+        \midrule
+        100 & 81 / 139 & 66 / 113 \\
+        150 & 88 / 160 & 79 / 139 \\
+        200 & 94 / 174 & 86 / 153 \\
+        250 & 102 / 192 & 97 / 176 \\
+        300 & 113 / 199 & 103 / 190 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.65\textwidth]{experiments/plots/exp4_smart.png}
+    \caption{Średni czas wejścia dla strategii świadomego oraz losowego wyboru bramki w funkcji liczby kibiców.}
+    \label{fig:exp4}
+\end{figure}
+
+Wyniki (Tabela~\ref{tab:smart}, Rysunek~\ref{fig:exp4}) okazały się nieoczywiste: strategia \emph{losowa} okazała się konsekwentnie szybsza od strategii \emph{świadomej} --- średni czas wejścia był krótszy o ok. 8--18\% w całym zakresie obciążenia. Wyjaśnienie tego zjawiska jest emergentną własnością modelu. Kierowanie się do bramki najbliższej punktowi przybycia w naturalny sposób \emph{równoważy obciążenie} wszystkich bramek (kibice przybywający z różnych stron rozkładają się równomiernie) oraz minimalizuje drogę pokonywaną wzdłuż zewnętrznego obwodu obiektu. Z kolei kierowanie się do bramki najbliższej miejscu na trybunie prowadzi do lokalnych spiętrzeń --- kibice o miejscach skupionych w jednym sektorze tłoczą się przy tej samej bramce --- oraz wymusza dłuższe przemieszczanie się na zewnątrz stadionu. Wniosek praktyczny: przy projektowaniu organizacji wejść korzystniejsze bywa rozproszenie strumienia widzów na najbliższe dostępne wejścia niż sztywne przypisanie sektorów do bramek.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Podsumowanie i wnioski}
+\label{sec:conclusions}
+
+W ramach projektu zaprojektowano i zaimplementowano mikroskopowy, wieloagentowy model symulacyjny logistyki napływu widzów na stadion. Model, zbudowany w języku Python z wykorzystaniem frameworka Mesa, odwzorowuje kluczowe elementy procesu wejścia: przybycie kibiców, kontrolę biletową przy bramkach o zadanej liczbie i szerokości, nawigację do przypisanego miejsca z omijaniem przeszkód i tłoku, a także naturalne formowanie się kolejek i chwilowych zatorów.
+
+Przeprowadzone eksperymenty pozwoliły sformułować następujące wnioski:
+\begin{itemize}
+    \item \textbf{Liczba bramek} jest najsilniejszym czynnikiem wpływającym na przepustowość przy małych wartościach, jednak jej zwiększanie wykazuje wyraźny \emph{efekt nasycenia}. Powyżej progu kilku bramek wąskie gardło przenosi się z wejść do wewnętrznej infrastruktury (korytarzy i dojść do rzędów), a dalsza rozbudowa liczby bramek przestaje skracać czas zapełnienia.
+    \item \textbf{Czas kontroli biletów} wpływa na czas zapełnienia i średni czas wejścia w sposób niemal liniowy. Jest to najłatwiej sterowalny parametr organizacyjny --- inwestycja w szybszą odprawę (np. bramki automatyczne) daje bezpośredni zysk czasowy.
+    \item \textbf{Szerokość bramek} poprawia przepustowość jedynie do pewnego progu, po którym czynnikiem ograniczającym stają się elementy wewnętrzne obiektu.
+    \item \textbf{Strategia wyboru bramki} ma istotne znaczenie, przy czym --- wbrew intuicji --- rozproszenie widzów na wejścia najbliższe punktowi przybycia (równoważące obciążenie) przewyższa sztywne kierowanie ich do bramki przy własnym sektorze.
+\end{itemize}
+
+Nadrzędnym wnioskiem płynącym z badań jest obserwacja, że przepustowość obiektu masowego jest wypadkową \emph{całego łańcucha} elementów, a optymalizacja pojedynczego z nich (np. dodawanie bramek) napotyka na barierę wynikającą z przeniesienia się wąskiego gardła w inne miejsce. Efektywne zarządzanie napływem wymaga zatem równoległego uwzględnienia przepustowości bramek, czasu odprawy, geometrii korytarzy oraz sposobu rozkładania strumienia ludzi.
+
+Model posiada naturalne ograniczenia: jest dyskretny (siatka), abstrahuje od indywidualnych prędkości i czynników psychologicznych (panika, zachowania stadne), a mechanizm rozwiązywania zatorów w rzadkich przypadkach nie doprowadza do pełnego rozładowania ruchu przy niewielkiej liczbie bramek. Kierunkami dalszego rozwoju są: wprowadzenie zróżnicowanych profili zachowań agentów, uwzględnienie modelu sił społecznych, buforowanie wyznaczonych ścieżek w celu przyspieszenia symulacji większych tłumów oraz rozszerzenie analizy o scenariusze ewakuacji (odwrócenie kierunku przepływu).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 \printbibliography
