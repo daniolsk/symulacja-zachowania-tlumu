@@ -190,7 +190,7 @@ Podczas symulacji mierzona jest na bieżąco m.in. \textit{Przepustowość} (ilo
 
 \subsection{Algorytmy i biblioteki}
 
-System symulacyjny został zaimplementowany w języku Python przy wykorzystaniu specjalistycznego frameworka \textit{Mesa} przeznaczonego do budowy modeli agentowych\footnote{Pełny kod źródłowy modelu oraz skrypty eksperymentalne dostępne są w repozytorium: \url{https://github.com/daniolsk/symulacja-zachowania-tlumu}}. Do wizualizacji działania tłumu wykorzystano zintegrowany serwer działający na bibliotece \textit{Tornado} (\texttt{mesa\_viz\_tornado}), pozwalający na obserwację ruchu węzłów i rysowanie wykresów analitycznych w czasie rzeczywistym.
+System symulacyjny został zaimplementowany w języku Python przy wykorzystaniu specjalistycznego frameworka \textit{Mesa} przeznaczonego do budowy modeli agentowych. Do wizualizacji działania tłumu wykorzystano zintegrowany serwer działający na bibliotece \textit{Tornado} (\texttt{mesa\_viz\_tornado}), pozwalający na obserwację ruchu węzłów i rysowanie wykresów analitycznych w czasie rzeczywistym.
 
 Do modelowania przestrzennego nawigowania (ang. \textit{pathfinding}) zastosowano zmodyfikowany algorytm $A^*$ (A-Star) oparty o kolejkę priorytetową (\texttt{heapq}). Trasa każdego kibica wyznaczana jest heurystycznie na podstawie otoczenia Moore'a. Aby zachowanie tłumu było realistyczne, każdy agent weryfikuje gęstość obszaru w zasięgu wzroku przeliczając nową złożoność kroków. 
 Funkcja bazowego kosztu wejścia na pole $(x,y)$ obliczana jest zgodnie z poniższym wzorem:
