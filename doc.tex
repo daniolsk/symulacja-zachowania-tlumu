@@ -208,16 +208,16 @@ W sytuacjach granicznych i przy zablokowaniach (tzw. \textit{deadlockach}), agen
 \label{sec:experiments}
 
 \subsection{Metodyka badań}
-Eksperymenty przeprowadzono w trybie wsadowym (bez warstwy wizualizacji), uruchamiając model wielokrotnie dla różnych zestawów parametrów. Dla każdej konfiguracji wykonano niezależne replikacje (z uwagi na losowość rozmieszczenia punktów startowych, przydziału miejsc oraz losowej kolejności przeglądania sąsiedztwa w algorytmie ruchu), a prezentowane wartości stanowią uśrednienie po replikacjach. Wąsy na wykresach oznaczają odchylenie standardowe.
+Eksperymenty przeprowadzono w trybie wsadowym (bez warstwy wizualizacji), uruchamiając model wielokrotnie dla różnych zestawów parametrów. Ze względu na losowość modelu (rozmieszczenie punktów przybycia, przydział miejsc oraz losowa kolejność przeglądania sąsiedztwa w algorytmie ruchu) każdą konfigurację powtarzano niezależnie: trzykrotnie w eksperymentach 2--4 oraz ośmiokrotnie w eksperymencie dotyczącym liczby bramek (z uwagi na większą zmienność wyników). Prezentowane wartości stanowią uśrednienie po replikacjach, a w eksperymencie z liczbą bramek --- medianę.
 
-Jako główne miary efektywności przyjęto:
+Jako główne miary efektywności przyjęto czas zapełnienia oraz średni czas wejścia:
 \begin{itemize}
     \item \textbf{Czas zapełnienia} --- liczbę kroków symulacji potrzebną do zajęcia miejsc przez \emph{wszystkich} kibiców (miara przepustowości całego procesu);
-    \item \textbf{Średni czas wejścia} --- średnią liczbę kroków, po której pojedynczy kibic zajmuje swoje miejsce (miara komfortu/sprawności z perspektywy widza);
-    \item \textbf{Średnią długość kolejki} --- średnią w czasie liczbę kibiców oczekujących na odprawę (miara natężenia wąskiego gardła).
+    \item \textbf{Średni czas wejścia} --- średnią liczbę kroków, po której pojedynczy kibic zajmuje swoje miejsce (miara sprawności procesu z perspektywy pojedynczego widza).
 \end{itemize}
+Pomocniczo rejestrowano również \textbf{długość kolejki} (liczbę kibiców oczekujących na odprawę), której przebieg w czasie prezentuje panel metryk warstwy wizualizacyjnej (Rysunek~\ref{fig:live_charts}).
 
-O ile nie zaznaczono inaczej, konfiguracją bazową było: 200 kibiców, 4 bramki, szerokość bramki 2 komórki, czas kontroli biletu 5 kroków oraz świadomy wybór bramki. W kolejnych eksperymentach zmieniano jeden wybrany parametr, pozostawiając resztę bez zmian.
+We wszystkich eksperymentach zmieniano tylko jeden badany parametr, pozostałe utrzymując na wartościach bazowych: 200 kibiców, 4 bramki, szerokość bramki 2 komórki, czas kontroli biletu 5 kroków oraz świadomy wybór bramki. Odstępstwa od tej konfiguracji (np. zmniejszone obciążenie w eksperymencie 2. czy zmienną liczbę kibiców w eksperymencie 4.) zaznaczono w opisie poszczególnych badań.
 
 Poglądowy przebieg symulacji przedstawia Rysunek~\ref{fig:sim_overview}: widoczni są kibice oczekujący w kolejce (kolor czerwony), przechodzący kontrolę biletową przy bramce (kolor żółty) oraz zajmujący już swoje miejsca (kolor zielony). Rysunek~\ref{fig:bottleneck} ilustruje natomiast zjawisko wąskiego gardła powstające przy ograniczeniu liczby bramek do jednej.
 
@@ -272,7 +272,7 @@ W pierwszym eksperymencie badano wpływ liczby bramek wejściowych na przepustow
     \label{fig:exp1}
 \end{figure}
 
-Zaobserwowano wyraźny \emph{efekt nasycenia}. Przejście z jednej do dwóch bramek skraca medianę czasu zapełnienia o ok. 34\% (z 292 do 192 kroków), a średni czas wejścia niemal o połowę (ze 156 do 104 kroków). Dalsze zwiększanie liczby bramek przynosi już tylko marginalne korzyści --- powyżej 4 bramek krzywa spłaszcza się na poziomie ok. 170 kroków. Oznacza to, że po odblokowaniu wejść czynnikiem ograniczającym przestają być same bramki, a staje się nim wewnętrzna infrastruktura (korytarze i dojścia do rzędów siedzeń). Dodatkowo, przy 2--3 bramkach jeden na osiem biegów nie rozładował się w pełni w zadanym limicie kroków --- świadczy to o tym, że przy umiarkowanej liczbie wejść model bywa podatny na przejściowe zakleszczenia w wąskich korytarzach (por. ograniczenia modelu w Rozdziale~\ref{sec:conclusions}).
+Zaobserwowano wyraźny \emph{efekt nasycenia}. Przejście z jednej do dwóch bramek skraca medianę czasu zapełnienia o ok. 34\% (z 292 do 192 kroków), a średni czas wejścia o ok. jedną trzecią (ze 156 do 104 kroków). Dalsze zwiększanie liczby bramek przynosi już tylko marginalne korzyści --- powyżej 4 bramek krzywa spłaszcza się na poziomie ok. 170 kroków. Oznacza to, że po odblokowaniu wejść czynnikiem ograniczającym przestają być same bramki, a staje się nim wewnętrzna infrastruktura (korytarze i dojścia do rzędów siedzeń). Dodatkowo, przy 2--3 bramkach jeden na osiem biegów nie rozładował się w pełni w zadanym limicie kroków --- świadczy to o tym, że przy umiarkowanej liczbie wejść model bywa podatny na przejściowe zakleszczenia w wąskich korytarzach (por. ograniczenia modelu w Rozdziale~\ref{sec:conclusions}).
 
 \subsection{Eksperyment 2: wpływ czasu kontroli biletów}
 W eksperymencie badano wpływ czasu odprawy biletowej (liczby kroków potrzebnych na przeskanowanie jednego biletu) na przepustowość procesu. Ze względu na to, że długi czas kontroli drastycznie wydłuża biegi symulacji, obciążenie ustalono na poziomie 120 kibiców. Wyniki zebrano w Tabeli~\ref{tab:service} oraz na Rysunku~\ref{fig:exp2}.
